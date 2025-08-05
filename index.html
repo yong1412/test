@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>奇偶方块挑战</title>
+    <!-- 引入 Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 设置全局字体为 Inter，并移除默认外边距 */
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            overflow: hidden; /* 防止页面滚动条出现 */
+        }
+        /* Canvas 样式，确保其填充父容器并有圆角 */
+        canvas {
+            background-color: #f0f9ff; /* 浅蓝色背景 */
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: 0.75rem; /* 圆角 */
+        }
+        /* 自定义游戏按钮样式 */
+        .game-button {
+            padding: 0.75rem 1.5rem; /* 内边距 */
+            border-radius: 0.75rem; /* 圆角 */
+            font-weight: 600; /* 字体粗细 */
+            transition: all 0.3s ease; /* 平滑过渡效果 */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 阴影效果 */
+        }
+        .game-button:hover {
+            transform: translateY(-2px); /* 鼠标悬停时上移 */
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15); /* 鼠标悬停时阴影加深 */
+        }
+        /* 开始按钮的颜色 */
+        .start-button {
+            background-color: #3b82f6; /* 蓝色-500 */
+            color: white;
+        }
+        .start-button:hover {
+            background-color: #2563eb; /* 蓝色-600 */
+        }
+        /* 重新开始按钮的颜色 */
+        .restart-button {
+            background-color: #22c55e; /* 绿色-500 */
+            color: white;
+        }
+        .restart-button:hover {
+            background-color: #16a34a; /* 绿色-600 */
+        }
+        /* 反馈消息的动画类 */
+        .feedback-visible {
+            opacity: 1 !important; /* 使消息可见 */
+        }
+        /* 游戏覆盖层的动画类 */
+        .game-overlay-visible {
+            opacity: 1 !important; /* 使覆盖层可见 */
+            pointer-events: auto !important; /* 允许点击事件穿透 */
+        }
+        /* 触摸控制按钮样式 */
+        .touch-button {
+            width: 80px; /* 确保触摸目标足够大 */
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem; /* 增大字体大小 */
+            border-radius: 9999px; /* 圆形按钮 */
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+            transition: transform 0.1s ease-out;
+            user-select: none; /* 防止文本被选中 */
+            -webkit-tap-highlight-color: transparent; /* 移除点击高亮 */
+        }
+        .touch-button:active {
+            transform: scale(0.95); /* 按下时缩小 */
+        }
+    </style>
+</head>
+<body>
+    <!-- 游戏主容器，居中显示并设置背景渐变 -->
+    <div id="game-container" class="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 p-4">
+        <!-- 游戏标题 -->
+        <h1 class="text-5xl font-extrabold mb-6 text-blue-800 drop-shadow-lg">奇偶方块挑战</h1>
+        <!-- 分数和回合数显示 -->
+        <div class="flex items-center space-x-8 mb-6">
+            <div class="text-3xl font-semibold text-gray-800">分数: <span id="score" class="text-green-700 font-bold">0</span></div>
+            <div class="text-3xl font-semibold text-gray-800">回合: <span id="rounds" class="text-blue-700 font-bold">0</span> / <span id="maxRounds">10</span></div>
+            <button id="startButton" class="game-button start-button">开始游戏</button>
+        </div>
+        <!-- 游戏区域，包含 Canvas 和反馈消息/游戏覆盖层 -->
+        <div class="relative w-full max-w-3xl h-[500px] bg-white rounded-xl shadow-2xl overflow-hidden border-4 border-gray-300">
+            <canvas id="gameCanvas" class="w-full h-full"></canvas>
+            <!-- 反馈消息（正确/错误） -->
+            <div id="feedbackMessage" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-5xl font-extrabold text-red-600 opacity-0 transition-opacity duration-500 z-10"></div>
+            <!-- 游戏覆盖层（开始/重新开始） -->
+            <div id="gameOverlay" class="absolute inset-0 bg-black bg-opacity-75 flex flex-col items-center justify-center text-white text-5xl font-extrabold opacity-0 pointer-events-none transition-opacity duration-500 rounded-xl">
+                <span id="overlayText">点击开始游戏！</span>
+                <button id="overlayButton" class="game-button restart-button mt-6 text-3xl">开始游戏</button>
+            </div>
+        </div>
+        <!-- 游戏操作说明 (桌面版) -->
+        <div class="mt-8 text-xl text-gray-800 text-center leading-relaxed hidden lg:block"> <!-- Hide on small screens -->
+            <p>使用 <span class="font-extrabold text-purple-700">←</span> 键和 <span class="font-extrabold text-orange-700">→</span> 键移动方块</p>
+            <p>按下 <span class="font-extrabold text-blue-700">↓</span> 键加速方块降落</p>
+            <p>将方块落在 <span class="text-purple-600 font-extrabold">奇数区域</span> 或 <span class="text-orange-600 font-extrabold">偶数区域</span></p>
+        </div>
+
+        <!-- 手机触摸控制按钮 (移动版) -->
+        <div class="flex justify-center space-x-6 mt-8 lg:hidden"> <!-- Hide on large screens -->
+            <button id="mobileLeft" class="touch-button bg-blue-500 hover:bg-blue-700 text-white">←</button>
+            <button id="mobileDown" class="touch-button bg-green-500 hover:bg-green-700 text-white">↓</button>
+            <button id="mobileRight" class="touch-button bg-blue-500 hover:bg-blue-700 text-white">→</button>
+        </div>
+    </div>
+
+    <script>
+        // Get Canvas element and its 2D rendering context
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        // Get score display element
+        const scoreDisplay = document.getElementById('score');
+        // Get rounds display element
+        const roundsDisplay = document.getElementById('rounds');
+        // Get max rounds display element
+        const maxRoundsDisplay = document.getElementById('maxRounds');
+        // Get start game button element
+        const startButton = document.getElementById('startButton');
+        // Get feedback message element
+        const feedbackMessage = document.getElementById('feedbackMessage');
+        // Get game overlay element
+        const gameOverlay = document.getElementById('gameOverlay');
+        // Get overlay text element
+        const overlayText = document.getElementById('overlayText');
+        // Get overlay button element
+        const overlayButton = document.getElementById('overlayButton');
+
+        // Get mobile control buttons
+        const mobileLeft = document.getElementById('mobileLeft');
+        const mobileRight = document.getElementById('mobileRight');
+        const mobileDown = document.getElementById('mobileDown');
+
+        // Game constants definition
+        // Odd numbers library
+        const ODD_NUMBERS = [1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35,37,39,41,43,45,47,49,51,53,53,55,57,59,61,63,65,67,69,71,73,75,77,79,81,83,85,87,89,91,93,95,97,99];
+        // Even numbers library
+        const EVEN_NUMBERS = [2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42,44,46,48,50,52,54,56,58,60,62,64,66,68,70,72,74,76,78,80,82,84,86,88,90,92,94,96,98,100];
+        const BLOCK_SIZE = 60; // Size of the number block (pixels)
+        const NORMAL_FALL_SPEED = 1; // Normal fall speed (pixels/frame)
+        const FAST_FALL_SPEED = 10; // Fast fall speed (pixels/frame)
+        const HORIZONTAL_MOVE_SPEED = 15; // Horizontal movement speed of the block (pixels/key press)
+        const SCORE_CORRECT = 10; // Score for correct classification
+        const SCORE_INCORRECT = -5; // Score deduction for incorrect classification
+        const ZONE_LABEL_HEIGHT = 80; // Height of the zone labels, ensuring text displays within the bottom area
+        const MAX_ROUNDS = 10; // Maximum number of rounds to play
+
+        // Game variables
+        let score = 0; // Current score
+        let roundsPlayed = 0; // Number of rounds played
+        let currentBlock = null; // Current falling block object
+        let gameRunning = false; // Whether the game is running
+        let animationFrameId = null; // requestAnimationFrame ID, used to cancel animation
+        let blockActive = false; // Flag indicating if a block is falling or waiting to fall
+        let lastUpdateTime = 0; // Timestamp of the last update
+        let currentFallSpeed = NORMAL_FALL_SPEED; // Current fall speed, defaults to normal speed
+
+        const FPS = 60; // Game frame rate
+        const FRAME_INTERVAL = 1000 / FPS; // Time interval per frame
+
+        // Helper function: check if a number is odd
+        const isOdd = (num) => num % 2 !== 0;
+        // Helper function: check if a number is even
+        const isEven = (num) => num % 2 === 0;
+
+        // Adjust Canvas size to fit its parent container and handle responsive layout
+        function resizeCanvas() {
+            canvas.width = canvas.offsetWidth; // Set Canvas width to its CSS width
+            canvas.height = canvas.offsetHeight; // Set Canvas height to its CSS height
+            // If the game is running or a block exists, redraw all game elements
+            if (gameRunning || currentBlock) {
+                drawGame();
+            } else {
+                // If the game is not running, only draw game zones (odd/even areas)
+                drawGameZones();
+            }
+        }
+
+        // Draw all elements of the game interface
+        function drawGame() {
+            // Clear Canvas content
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw odd and even zones
+            drawGameZones();
+
+            // Draw the current falling number block
+            if (currentBlock) {
+                ctx.fillStyle = currentBlock.color; // Block color
+                ctx.fillRect(currentBlock.x, currentBlock.y, BLOCK_SIZE, BLOCK_SIZE); // Draw block
+                ctx.strokeStyle = '#333'; // Block border color
+                ctx.lineWidth = 3; // Block border thickness
+                ctx.strokeRect(currentBlock.x, currentBlock.y, BLOCK_SIZE, BLOCK_SIZE); // Draw block border
+
+                ctx.fillStyle = '#fff'; // Number color
+                ctx.font = 'bold 30px Arial'; // Number font
+                ctx.textAlign = 'center'; // Horizontal alignment
+                ctx.textBaseline = 'middle'; // Vertical alignment
+                ctx.fillText(currentBlock.value, currentBlock.x + BLOCK_SIZE / 2, currentBlock.y + BLOCK_SIZE / 2); // Draw number
+            }
+        }
+
+        // Draw odd and even zones
+        function drawGameZones() {
+            const centerX = canvas.width / 2; // Canvas center X coordinate
+            const zoneWidth = canvas.width / 2; // Width of each zone
+
+            // Odd zone (left side)
+            ctx.fillStyle = 'rgba(128, 0, 128, 0.1)'; // Purple translucent fill
+            ctx.fillRect(0, 0, zoneWidth, canvas.height); // Draw zone background
+
+            ctx.fillStyle = '#800080'; // Text color
+            ctx.font = 'bold 30px Arial'; // Text font
+            ctx.textAlign = 'center'; // Text alignment
+            ctx.fillText('奇数 (ODD)', zoneWidth / 2, canvas.height - ZONE_LABEL_HEIGHT / 2); // Draw zone name at the bottom
+
+            // Even zone (right side)
+            ctx.fillStyle = 'rgba(255, 165, 0, 0.1)'; // Orange translucent fill
+            ctx.fillRect(centerX, 0, zoneWidth, canvas.height); // Draw zone background
+
+            ctx.fillStyle = '#FFA500'; // Text color
+            ctx.font = 'bold 30px Arial'; // Text font
+            ctx.textAlign = 'center'; // Text alignment
+            ctx.fillText('偶数 (EVEN)', centerX + zoneWidth / 2, canvas.height - ZONE_LABEL_HEIGHT / 2); // Draw zone name at the bottom
+        }
+
+        // Generate a new number block
+        function generateBlock() {
+            // If max rounds reached, end the game
+            if (roundsPlayed >= MAX_ROUNDS) {
+                endGame();
+                return;
+            }
+
+            // Randomly decide if the next block is odd or even
+            const isNextOdd = Math.random() < 0.5;
+            // Select the corresponding number library based on the decision
+            const numbers = isNextOdd ? ODD_NUMBERS : EVEN_NUMBERS;
+            // Randomly select a number from the library
+            const value = numbers[Math.floor(Math.random() * numbers.length)];
+
+            // Create a new block object
+            currentBlock = {
+                value: value,
+                x: (canvas.width / 2) - (BLOCK_SIZE / 2), // Initial position at the top center
+                y: 0,
+                color: '#4a90e2' // Default block color
+            };
+            blockActive = true; // New block generated, set to active
+            currentFallSpeed = NORMAL_FALL_SPEED; // Reset fall speed to normal speed for each new block
+        }
+
+        // Update game state (called in the game loop)
+        function updateGame(currentTime) {
+            // If the game is not running, stop updating
+            if (!gameRunning) return;
+
+            // Request next animation frame to create a loop
+            animationFrameId = requestAnimationFrame(updateGame);
+
+            // Calculate elapsed time since last update
+            const elapsed = currentTime - lastUpdateTime;
+
+            // If elapsed time exceeds frame interval, update game state
+            if (elapsed > FRAME_INTERVAL) {
+                lastUpdateTime = currentTime - (elapsed % FRAME_INTERVAL);
+
+                // If a block is active (falling)
+                if (blockActive && currentBlock) {
+                    currentBlock.y += currentFallSpeed; // Move block downwards, using current fall speed
+
+                    // Check if the block has landed
+                    if (currentBlock.y + BLOCK_SIZE >= canvas.height - ZONE_LABEL_HEIGHT) {
+                        currentBlock.y = canvas.height - ZONE_LABEL_HEIGHT - BLOCK_SIZE; // Snap block to just above the zone labels
+                        handleBlockLanding(); // Handle block landing logic
+                    }
+                }
+                drawGame(); // Draw current game state
+            }
+        }
+
+        // Handle block landing logic
+        function handleBlockLanding() {
+            blockActive = false; // Block landed, set to inactive
+            currentFallSpeed = NORMAL_FALL_SPEED; // After block lands, fall speed reverts to normal
+
+            // Determine which zone the block landed in based on its final horizontal position
+            const landedInOddZone = (currentBlock.x + BLOCK_SIZE / 2) < (canvas.width / 2);
+
+            let correct = false; // Flag indicating if classification was correct
+            // Check if classification is correct
+            if (landedInOddZone && isOdd(currentBlock.value)) {
+                correct = true;
+            } else if (!landedInOddZone && isEven(currentBlock.value)) { // If not in odd zone, then in even zone
+                correct = true;
+            }
+
+            // Update score and display feedback based on classification result
+            if (correct) {
+                score += SCORE_CORRECT;
+                showFeedback('正确！', 'green');
+            } else {
+                score += SCORE_INCORRECT;
+                showFeedback('错误！', 'red');
+            }
+            scoreDisplay.textContent = score; // Update score display
+            roundsPlayed++; // Increment rounds played
+            roundsDisplay.textContent = roundsPlayed; // Update rounds display
+
+            // Generate a new block after a short delay to allow player to see feedback
+            setTimeout(() => {
+                generateBlock(); // Generate new block and set it to active (or end game if max rounds reached)
+                drawGame(); // Draw initial position of the new block
+            }, 500);
+        }
+
+        // Display visual feedback (e.g., "Correct!" or "Incorrect!")
+        function showFeedback(message, color) {
+            feedbackMessage.textContent = message; // Set feedback message text
+            feedbackMessage.style.color = color; // Set feedback message color
+            feedbackMessage.classList.add('feedback-visible'); // Add class to trigger animation
+
+            // Clear any existing timers to prevent message from disappearing too early
+            clearTimeout(feedbackMessage.timeoutId);
+            // Hide feedback message after a short delay
+            feedbackMessage.timeoutId = setTimeout(() => {
+                feedbackMessage.classList.remove('feedback-visible');
+            }, 700);
+        }
+
+        // Handle key down event (for both keyboard and simulated touch)
+        function handleKeyDown(event) {
+            // If the game is not running or no block is active, ignore input
+            if (!gameRunning || !blockActive || !currentBlock) return;
+
+            // Determine the key from keyboard event or custom object for touch
+            const key = event.key;
+
+            // Move block based on key press
+            if (key === 'ArrowLeft') {
+                currentBlock.x -= HORIZONTAL_MOVE_SPEED;
+                // Boundary check: ensure block does not move out of left boundary
+                if (currentBlock.x < 0) {
+                    currentBlock.x = 0;
+                }
+            } else if (key === 'ArrowRight') {
+                currentBlock.x += HORIZONTAL_MOVE_SPEED;
+                // Boundary check: ensure block does not move out of right boundary
+                if (currentBlock.x + BLOCK_SIZE > canvas.width) {
+                    currentBlock.x = canvas.width - BLOCK_SIZE;
+                }
+            } else if (key === 'ArrowDown') {
+                currentFallSpeed = FAST_FALL_SPEED; // Pressing down arrow speeds up fall
+            }
+        }
+
+        // Handle key up event (for both keyboard and simulated touch)
+        function handleKeyUp(event) {
+            // Determine the key from keyboard event or custom object for touch
+            const key = event.key;
+
+            // When releasing the down arrow key, revert to normal fall speed
+            if (key === 'ArrowDown') {
+                currentFallSpeed = NORMAL_FALL_SPEED;
+            }
+        }
+
+        // Define mobile touch event handlers in global scope
+        function handleMobileLeftStart(e) { e.preventDefault(); handleKeyDown({ key: 'ArrowLeft' }); }
+        function handleMobileLeftEnd(e) { e.preventDefault(); handleKeyUp({ key: 'ArrowLeft' }); }
+        function handleMobileRightStart(e) { e.preventDefault(); handleKeyDown({ key: 'ArrowRight' }); }
+        function handleMobileRightEnd(e) { e.preventDefault(); handleKeyUp({ key: 'ArrowRight' }); }
+        function handleMobileDownStart(e) { e.preventDefault(); handleKeyDown({ key: 'ArrowDown' }); }
+        function handleMobileDownEnd(e) { e.preventDefault(); handleKeyUp({ key: 'ArrowDown' }); }
+
+        // End the game
+        function endGame() {
+            gameRunning = false; // Stop the game loop
+            cancelAnimationFrame(animationFrameId); // Cancel any ongoing animation frame
+            blockActive = false; // No active block
+            currentBlock = null; // Clear current block
+            
+            // Remove all event listeners to prevent memory leaks and unintended behavior
+            document.removeEventListener('keydown', handleKeyDown);
+            document.removeEventListener('keyup', handleKeyUp);
+            mobileLeft.removeEventListener('touchstart', handleMobileLeftStart);
+            mobileLeft.removeEventListener('touchend', handleMobileLeftEnd);
+            mobileRight.removeEventListener('touchstart', handleMobileRightStart);
+            mobileRight.removeEventListener('touchend', handleMobileRightEnd);
+            mobileDown.removeEventListener('touchstart', handleMobileDownStart);
+            mobileDown.removeEventListener('touchend', handleMobileDownEnd);
+
+            // Display final score on the overlay
+            showGameOverlay(`游戏结束！你的总分是: ${score}`, '重新开始');
+        }
+
+        // Initialize game
+        function initGame() {
+            score = 0; // Reset score
+            roundsPlayed = 0; // Reset rounds played
+            scoreDisplay.textContent = score; // Update score display
+            roundsDisplay.textContent = roundsPlayed; // Update rounds display
+            maxRoundsDisplay.textContent = MAX_ROUNDS; // Set max rounds display
+
+            generateBlock(); // Generate the first block and set it to active
+            gameRunning = true; // Set game running state to true
+            lastUpdateTime = performance.now(); // Initialize last update time
+            gameOverlay.classList.remove('game-overlay-visible'); // Hide game overlay
+
+            // Ensure event listeners are added only once by removing them first
+            document.removeEventListener('keydown', handleKeyDown);
+            document.removeEventListener('keyup', handleKeyUp);
+            mobileLeft.removeEventListener('touchstart', handleMobileLeftStart);
+            mobileLeft.removeEventListener('touchend', handleMobileLeftEnd);
+            mobileRight.removeEventListener('touchstart', handleMobileRightStart);
+            mobileRight.removeEventListener('touchend', handleMobileRightEnd);
+            mobileDown.removeEventListener('touchstart', handleMobileDownStart);
+            mobileDown.removeEventListener('touchend', handleMobileDownEnd);
+            
+            // Add keyboard event listeners
+            document.addEventListener('keydown', handleKeyDown);
+            document.addEventListener('keyup', handleKeyUp);
+
+            // Add mobile touch event listeners
+            mobileLeft.addEventListener('touchstart', handleMobileLeftStart);
+            mobileLeft.addEventListener('touchend', handleMobileLeftEnd);
+            mobileRight.addEventListener('touchstart', handleMobileRightStart);
+            mobileRight.addEventListener('touchend', handleMobileRightEnd);
+            mobileDown.addEventListener('touchstart', handleMobileDownStart);
+            mobileDown.addEventListener('touchend', handleMobileDownEnd);
+
+            // If a previous animation loop exists, cancel it
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+            animationFrameId = requestAnimationFrame(updateGame); // Start new animation loop
+        }
+
+        // Show game overlay (for starting or restarting the game)
+        function showGameOverlay(message, buttonText) {
+            overlayText.textContent = message; // Set overlay text
+            overlayButton.textContent = buttonText; // Set overlay button text
+            gameOverlay.classList.add('game-overlay-visible'); // Show overlay
+        }
+
+        // Event listeners
+        // Initial start button click event
+        startButton.addEventListener('click', () => {
+            initGame(); // Initialize game
+            startButton.style.display = 'none'; // Hide this button after game starts
+        });
+
+        // Overlay button click event (for starting or restarting the game)
+        overlayButton.addEventListener('click', () => {
+            initGame(); // Initialize game
+            startButton.style.display = 'none'; // Ensure main start button is hidden
+        });
+
+        // Initial setup when the page finishes loading
+        window.addEventListener('load', () => {
+            resizeCanvas(); // Adjust Canvas size
+            drawGameZones(); // Initially draw game zones
+            showGameOverlay('点击开始游戏！', '开始游戏'); // Show initial game overlay
+        });
+        // Re-adjust Canvas size when window size changes
+        window.addEventListener('resize', resizeCanvas);
+    </script>
+</body>
+</html>
+
+
