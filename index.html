@@ -1,40 +1,63 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>ESP32 Supabase Control</title>
-  <style>
-    body { font-family: Arial; text-align: center; margin: 50px; background: #f0f0f0; }
-    button { padding: 20px; margin: 10px; font-size: 20px; border-radius: 8px; cursor: pointer; }
-    #onBtn { background: green; color: white; }
-    #offBtn { background: red; color: white; }
-    input[type=range] { width: 80%; }
-  </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <meta charset="UTF-8">
+  <title>ESP32 Control</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body>
-  <h2>ESP32 LED & Servo Control</h2>
-  <button id="onBtn" onclick="setLED(true)">LED ON</button>
-  <button id="offBtn" onclick="setLED(false)">LED OFF</button>
+<body style="font-family: Arial; padding: 20px;">
+  <h1>ESP32 Web Control</h1>
 
-  <h3>Servo Control</h3>
-  <input type="range" min="0" max="180" value="0" id="servoSlider" oninput="moveServo(this.value)">
-  <p>Servo Angle: <span id="servoValue">0</span>°</p>
+  <!-- LED Control -->
+  <button id="ledButton">Turn LED ON</button>
+
+  <br><br>
+
+  <!-- Servo Control -->
+  <label for="servoRange">Servo Angle: </label>
+  <input type="range" id="servoRange" min="0" max="180" value="90">
+  <span id="servoValue">90</span>°
 
   <script>
-    // ===== Supabase Setup =====
-    const SUPABASE_URL = "https://YOUR_PROJECT_ID.supabase.co";
-    const SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY";
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // Supabase config
+    const SUPABASE_URL = "https://qliblvtrlkrznsrhqgne.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFsaWJsdnRybGtyem5zcmhxZ25lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4Mzk2ODMsImV4cCI6MjA3MTQxNTY4M30.dOqskEnbsVvDVBmw4wNyeln7omurairYnXggXkapWvE";
 
-    async function setLED(state) {
-      await supabase.from('controls').update({ led: state }).eq('id', 1);
-      console.log("LED set to", state);
-    }
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    async function moveServo(angle) {
-      document.getElementById("servoValue").innerText = angle;
-      await supabase.from('controls').update({ servo: angle }).eq('id', 1);
-      console.log("Servo set to", angle);
+    let ledState = false;
+    let servoAngle = 90;
+
+    // Detect device name (simplest way: User-Agent)
+    const deviceName = navigator.userAgent;
+
+    // LED button
+    const ledButton = document.getElementById("ledButton");
+    ledButton.addEventListener("click", async () => {
+      ledState = !ledState;
+      ledButton.textContent = ledState ? "Turn LED OFF" : "Turn LED ON";
+      await updateDatabase();
+    });
+
+    // Servo slider
+    const servoRange = document.getElementById("servoRange");
+    const servoValue = document.getElementById("servoValue");
+    servoRange.addEventListener("input", async () => {
+      servoAngle = parseInt(servoRange.value);
+      servoValue.textContent = servoAngle;
+      await updateDatabase();
+    });
+
+    // Insert new row into Supabase with device info
+    async function updateDatabase() {
+      const { error } = await supabase.from("device_control").insert([
+        { led: ledState, servo: servoAngle, device: deviceName }
+      ]);
+      if (error) {
+        console.error("Error inserting:", error);
+      } else {
+        console.log("Updated → LED:", ledState, "Servo:", servoAngle, "Device:", deviceName);
+      }
     }
   </script>
 </body>
