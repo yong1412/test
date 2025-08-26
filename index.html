@@ -4,31 +4,109 @@
   <meta charset="UTF-8">
   <title>ESP32 Control</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: white;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      height: 100vh;
+    }
+
+    .container {
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    /* LED Button */
+    #ledButton {
+      background-color: #007bff;
+      border: none;
+      color: white;
+      padding: 12px 24px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+
+    #ledButton:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2) inset;
+    }
+
+    /* Servo Range Slider */
+    .servo-control {
+      margin-top: 30px;
+    }
+
+    #servoRange {
+      -webkit-appearance: none;
+      width: 250px;
+      height: 6px;
+      border-radius: 5px;
+      background: #ddd;
+      outline: none;
+    }
+
+    #servoRange::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #007bff;
+      cursor: pointer;
+    }
+
+    #servoRange::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #007bff;
+      cursor: pointer;
+    }
+
+    #servoValue {
+      font-weight: bold;
+      margin-left: 10px;
+      color: #007bff;
+    }
+  </style>
 </head>
-<body style="font-family: Arial; padding: 20px;">
-  <h1>ESP32 Web Control</h1>
+<body>
+  <div class="container">
+    <h1>ESP32 Web Control</h1>
 
-  <!-- LED Control -->
-  <button id="ledButton">Turn LED ON</button>
+    <!-- LED Control -->
+    <button id="ledButton">Turn LED ON</button>
 
-  <br><br>
-
-  <!-- Servo Control -->
-  <label for="servoRange">Servo Angle: </label>
-  <input type="range" id="servoRange" min="0" max="180" value="90">
-  <span id="servoValue">90</span>°
+    <!-- Servo Control -->
+    <div class="servo-control">
+      <label for="servoRange">Servo Angle:</label>
+      <input type="range" id="servoRange" min="0" max="180" value="90">
+      <span id="servoValue">90</span>°
+    </div>
+  </div>
 
   <script>
     // Supabase config
     const SUPABASE_URL = "https://qliblvtrlkrznsrhqgne.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFsaWJsdnRybGtyem5zcmhxZ25lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4Mzk2ODMsImV4cCI6MjA3MTQxNTY4M30.dOqskEnbsVvDVBmw4wNyeln7omurairYnXggXkapWvE";
-
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let ledState = false;
     let servoAngle = 90;
 
-    // Detect device name (simplest way: User-Agent)
+    // Detect device name
     const deviceName = navigator.userAgent;
 
     // LED button
@@ -48,7 +126,7 @@
       await updateDatabase();
     });
 
-    // Insert new row into Supabase with device info
+    // Insert into Supabase
     async function updateDatabase() {
       const { error } = await supabase.from("device_control").insert([
         { led: ledState, servo: servoAngle, device: deviceName }
