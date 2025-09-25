@@ -1,142 +1,189 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>ESP32 Control</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Game Promo – Nova Battle</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
     body {
-      font-family: Arial, sans-serif;
-      background: white;
       margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
+      font-family: 'Orbitron', sans-serif;
+      background: #0a0a0a;
+      color: #fff;
+      overflow-x: hidden;
+    }
+    h1,h2,h3,p { margin: 0; }
+
+    /* HERO SECTION */
+    header {
+      position: relative;
       height: 100vh;
-    }
-
-    .container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle at center, #1b1b1b 0%, #000 80%);
       text-align: center;
+      overflow: hidden;
+    }
+    header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: conic-gradient(#ff004c, #00eaff, #ff004c);
+      animation: spin 8s linear infinite;
+      z-index: 0;
+      filter: blur(120px);
+    }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    header h1 {
+      font-size: 4em;
+      color: #00eaff;
+      text-shadow: 0 0 20px #00eaff, 0 0 40px #00eaff;
+      z-index: 1;
+    }
+    header p {
+      font-size: 1.3em;
+      margin-top: 20px;
+      z-index: 1;
+      max-width: 600px;
+    }
+    .cta-btn {
       margin-top: 40px;
+      padding: 15px 40px;
+      font-size: 1.2em;
+      border: 2px solid #00eaff;
+      background: transparent;
+      color: #00eaff;
+      cursor: pointer;
+      border-radius: 30px;
+      z-index: 1;
+      transition: all 0.3s;
+    }
+    .cta-btn:hover {
+      background: #00eaff;
+      color: #000;
+      box-shadow: 0 0 20px #00eaff, 0 0 40px #00eaff;
     }
 
-    h1 {
-      margin-bottom: 20px;
-      color: #333;
+    /* FEATURES SECTION */
+    section {
+      padding: 80px 20px;
+      max-width: 1000px;
+      margin: auto;
+      text-align: center;
+    }
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px,1fr));
+      gap: 30px;
+      margin-top: 50px;
+    }
+    .feature-card {
+      background: #111;
+      border: 2px solid #00eaff33;
+      border-radius: 12px;
+      padding: 30px;
+      transition: 0.3s;
+    }
+    .feature-card:hover {
+      border-color: #00eaff;
+      box-shadow: 0 0 15px #00eaff55;
+      transform: translateY(-8px);
+    }
+    .feature-card h3 {
+      color: #ff004c;
+      margin-bottom: 10px;
+      text-shadow: 0 0 10px #ff004c;
     }
 
-    /* LED Button */
-    #ledButton {
-      background-color: #007bff;
+    .trailer {
+      margin-top: 60px;
+      position: relative;
+      padding-bottom: 56.25%; /* 16:9 aspect ratio */
+      height: 0;
+    }
+    .trailer iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       border: none;
-      color: white;
-      padding: 12px 24px;
-      font-size: 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: transform 0.1s ease, box-shadow 0.1s ease;
+      border-radius: 12px;
+      box-shadow: 0 0 20px #00eaff66;
     }
 
-    #ledButton:active {
-      transform: translateY(2px);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2) inset;
+    footer {
+      background: #000;
+      padding: 20px;
+      text-align: center;
+      color: #777;
+      font-size: 14px;
+      border-top: 1px solid #00eaff33;
     }
 
-    /* Servo Range Slider */
-    .servo-control {
-      margin-top: 30px;
-    }
-
-    #servoRange {
-      -webkit-appearance: none;
-      width: 250px;
-      height: 6px;
-      border-radius: 5px;
-      background: #ddd;
-      outline: none;
-    }
-
-    #servoRange::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: #007bff;
-      cursor: pointer;
-    }
-
-    #servoRange::-moz-range-thumb {
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: #007bff;
-      cursor: pointer;
-    }
-
-    #servoValue {
-      font-weight: bold;
-      margin-left: 10px;
-      color: #007bff;
+    @media (max-width:600px) {
+      header h1 { font-size: 2.5em; }
+      header p { font-size: 1em; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>ESP32 Web Control</h1>
 
-    <!-- LED Control -->
-    <button id="ledButton">Turn LED ON</button>
+  <header>
+    <h1>NOVA BATTLE</h1>
+    <p>The ultimate cyber arena where legends clash in a neon-lit universe.<br>
+       Gear up. Lock in. Dominate.</p>
+    <button class="cta-btn" onclick="scrollToSection('features')">Watch Trailer</button>
+  </header>
 
-    <!-- Servo Control -->
-    <div class="servo-control">
-      <label for="servoRange">Servo Angle:</label>
-      <input type="range" id="servoRange" min="0" max="180" value="90">
-      <span id="servoValue">90</span>°
+  <section id="features">
+    <h2 style="color: #00eaff; text-shadow: 0 0 15px #00eaff;">Game Features</h2>
+    <div class="features">
+      <div class="feature-card">
+        <h3>⚡ Hyper-Speed Action</h3>
+        <p>Lightning-fast battles and pulse-pounding gameplay.</p>
+      </div>
+      <div class="feature-card">
+        <h3>🎮 Multiplayer Arena</h3>
+        <p>Compete in real-time battles with players worldwide.</p>
+      </div>
+      <div class="feature-card">
+        <h3>🔮 Futuristic Weapons</h3>
+        <p>Unlock next-gen gear, mods, and power-ups.</p>
+      </div>
+      <div class="feature-card">
+        <h3>💥 Stunning Visuals</h3>
+        <p>Immerse yourself in neon-lit cyberpunk worlds.</p>
+      </div>
     </div>
-  </div>
+
+    <div class="trailer">
+      <iframe
+        src="https://www.youtube.com/embed/03z1Wk3uumk"
+        title="Game Trailer"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen>
+      </iframe>
+    </div>
+  </section>
+
+  <footer>
+    © 2025 NOVA BATTLE • All Rights Reserved
+  </footer>
 
   <script>
-    // Supabase config
-    const SUPABASE_URL = "https://qliblvtrlkrznsrhqgne.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFsaWJsdnRybGtyem5zcmhxZ25lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU4Mzk2ODMsImV4cCI6MjA3MTQxNTY4M30.dOqskEnbsVvDVBmw4wNyeln7omurairYnXggXkapWvE";
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    let ledState = false;
-    let servoAngle = 90;
-
-    // Detect device name
-    const deviceName = navigator.userAgent;
-
-    // LED button
-    const ledButton = document.getElementById("ledButton");
-    ledButton.addEventListener("click", async () => {
-      ledState = !ledState;
-      ledButton.textContent = ledState ? "Turn LED OFF" : "Turn LED ON";
-      await updateDatabase();
-    });
-
-    // Servo slider
-    const servoRange = document.getElementById("servoRange");
-    const servoValue = document.getElementById("servoValue");
-    servoRange.addEventListener("input", async () => {
-      servoAngle = parseInt(servoRange.value);
-      servoValue.textContent = servoAngle;
-      await updateDatabase();
-    });
-
-    // Insert into Supabase
-    async function updateDatabase() {
-      const { error } = await supabase.from("device_control").insert([
-        { led: ledState, servo: servoAngle, device: deviceName }
-      ]);
-      if (error) {
-        console.error("Error inserting:", error);
-      } else {
-        console.log("Updated → LED:", ledState, "Servo:", servoAngle, "Device:", deviceName);
-      }
+    function scrollToSection(id) {
+      document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
     }
   </script>
+
 </body>
 </html>
