@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+    body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        padding: 20px;
+        background-color: #fff;
+    }
+    h2 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 20px;
+    }
+    table {
+        border-collapse: collapse;
+        font-size: 11px;
+        width: 100%;
+        table-layout: fixed;
+        border: 1px solid #d1d5d8;
+        text-align: center;
+    }
+    th, td {
+        border-bottom: 1px solid #d1d5d8;
+        padding: 2px;
+        height: 55px;
+        vertical-align: middle;
+        overflow: hidden;
+    }
+    
+    /* Vertical Lines Logic */
+    td, th { border-right: 1px solid #e5e7eb; } /* Light line (30 min) */
+    td:nth-child(even), th:nth-child(even) { border-right: 1px solid #b0b4b8; } /* Darker line (1 hour) */
+
+    .header-row { background-color: #f2f2f2; color: #444; }
+    
+    .day-col {
+        background-color: #d1d5d8;
+        font-weight: bold;
+        width: 75px; 
+        border-right: 1px solid #999 !important;
+    }
+
+    /* Base Class Box Styling */
+    .class-box {
+        border-radius: 2px;
+        font-size: 10px;
+        line-height: 1.35;
+        padding: 4px;
+        box-sizing: border-box;
+    }
+
+    /* --- COLOR RULES --- */
+    
+    /* 1. Same Course (Green) */
+    .same-course {
+        background-color: #4a7c44;
+        color: white;
+    }
+
+    /* 2. Timetable 1 Unique (Cyan) */
+    .t1-course {
+        background-color: #00bcd4;
+        color: white;
+    }
+
+    /* 3. Timetable 2 Unique (Yellow) */
+    .t2-course {
+        background-color: #ffee58; /* Bright yellow */
+        color: #333; /* Dark text for contrast */
+    }
+
+    /* Text formatting */
+    .code { font-size: 10px; display: block; margin-bottom: 2px; }
+    .location { font-size: 11px; font-weight: bold; display: block; margin-bottom: 2px; }
+    .instructor { font-size: 10px; display: block; margin-bottom: 2px; }
+    .time { font-size: 9px; opacity: 0.9; display: block; }
+
+</style>
+</head>
+<body>
+
+<h2>Combined Timetable</h2>
+
+<table>
+    <colgroup>
+        <col style="width: 75px;">
+        <col span="28"> 
+    </colgroup>
+    
+    <tr class="header-row">
+        <th rowspan="2" class="day-col">Day/Time</th>
+        <th colspan="2">08:00</th><th colspan="2">09:00</th><th colspan="2">10:00</th><th colspan="2">11:00</th><th colspan="2">12:00</th>
+        <th colspan="2">01:00</th><th colspan="2">02:00</th><th colspan="2">03:00</th><th colspan="2">04:00</th><th colspan="2">05:00</th>
+        <th colspan="2">06:00</th><th colspan="2">07:00</th><th colspan="2">08:00</th><th colspan="2">09:00</th>
+    </tr>
+    <tr class="header-row">
+        <th colspan="2">09:00</th><th colspan="2">10:00</th><th colspan="2">11:00</th><th colspan="2">12:00</th><th colspan="2">01:00</th>
+        <th colspan="2">02:00</th><th colspan="2">03:00</th><th colspan="2">04:00</th><th colspan="2">05:00</th><th colspan="2">06:00</th>
+        <th colspan="2">07:00</th><th colspan="2">08:00</th><th colspan="2">09:00</th><th colspan="2">10:00</th>
+    </tr>
+
+    <tr>
+        <td class="day-col">Mon</td>
+        <td></td><td></td><td></td><td></td>
+        
+        <td colspan="2" class="class-box t2-course">
+            <span class="code">MPU-3103 (T)</span><span class="location">TA240</span><span class="instructor">Roslizawati</span><span class="time">10:00 AM - 11:00 AM</span>
+        </td>
+
+        <td></td><td></td><td></td><td></td>
+        
+        <td colspan="4" class="class-box same-course">
+            <span class="code">BMCS2063 (P)</span><span class="location">D303A</span><span class="instructor">Thamarai</span><span class="time">1:00 PM - 3:00 PM</span>
+        </td>
+        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+    </tr>
+
+    <tr>
+        <td class="day-col">Tue</td>
+        <td colspan="2" class="class-box same-course">
+            <span class="code">BMIT2203 (T)</span><span class="location">D203H</span><span class="instructor">Aw Kien Sin</span><span class="time">8:00 AM - 9:00 AM</span>
+        </td>
+        <td colspan="2" class="class-box same-course">
+            <span class="code">BMIT2203 (P)</span><span class="location">D203H</span><span class="instructor">Aw Kien Sin</span><span class="time">9:00 AM - 10:00 AM</span>
+        </td>
+        <td colspan="2" class="class-box t1-course">
+            <span class="code">BMSE2163 (P)</span><span class="location">D303B</span><span class="instructor">Lehka</span><span class="time">10:00 AM - 11:00 AM</span>
+        </td>
+        <td></td><td></td>
+        <td colspan="4" class="class-box t1-course">
+            <span class="code">BMIT2013 (L)</span><span class="location">DK 4</span><span class="instructor">Tey Siew Kee</span><span class="time">12:00 PM - 2:00 PM</span>
+        </td>
+        <td colspan="2" class="class-box t2-course">
+            <span class="code">MPU-3302 (T)</span><span class="location">TA255</span><span class="instructor">Tan Khye Chuin</span><span class="time">2:00 PM - 3:00 PM</span>
+        </td>
+        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+    </tr>
+
+    <tr>
+        <td class="day-col">Wed</td>
+        <td colspan="4" class="class-box t2-course">
+            <span class="code">BMIT3084 (L)</span><span class="location">DK ABA</span><span class="instructor">Jessie Teoh Poh</span><span class="time">8:00 AM - 10:00 AM</span>
+        </td>
+        <td colspan="4" class="class-box t1-course">
+            <span class="code">BMIT2013 (P)</span><span class="location">B001K</span><span class="instructor">Lam Kah Fai</span><span class="time">10:00 AM - 12:00 PM</span>
+        </td>
+        <td></td><td></td>
+        <td colspan="2" class="class-box t1-course">
+            <span class="code">BMSE2163 (T)</span><span class="location">TA242</span><span class="instructor">Lehka</span><span class="time">1:00 PM - 2:00 PM</span>
+        </td>
+        <td colspan="2" class="class-box t2-course">
+            <span class="code">MPU-3232 (T)</span><span class="location">TA236</span><span class="instructor">Oh Kim Yong</span><span class="time">2:00 PM - 3:00 PM</span>
+        </td>
+        <td></td><td></td>
+        <td colspan="4" class="class-box t1-course">
+            <span class="code">BMCS2203 (L)</span><span class="location">DK SG 4</span><span class="instructor">Goh Ching Pang</span><span class="time">4:00 PM - 6:00 PM</span>
+        </td>
+        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+    </tr>
+
+    <tr>
+        <td class="day-col">Thu</td>
+        <td colspan="2" class="class-box t2-course">
+            <span class="code">MPU-3232 (L)</span><span class="location">DK ABA</span><span class="instructor">Oh Kim Yong</span><span class="time">8:00 AM - 9:00 AM</span>
+        </td>
+        <td></td><td></td>
+        <td colspan="4" class="class-box same-course">
+            <span class="code">BMCS2053 (L)</span><span class="location">DK Z</span><span class="instructor">Siti Nadiah</span><span class="time">10:00 AM - 12:00 PM</span>
+        </td>
+        <td></td><td></td>
+        <td colspan="2" class="class-box t1-course">
+            <span class="code">BMCS2203 (P)</span><span class="location">D303B</span><span class="instructor">Yan Yen Wei</span><span class="time">1:00 PM - 2:00 PM</span>
+        </td>
+        <td></td><td></td>
+        <td colspan="4" class="class-box same-course">
+            <span class="code">BMCS2063 (L)</span><span class="location">DK ABA</span><span class="instructor">Thamarai</span><span class="time">3:00 PM - 5:00 PM</span>
+        </td>
+        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+    </tr>
+
+    <tr>
+        <td class="day-col">Fri</td>
+        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+        <td colspan="4" class="class-box same-course">
+            <span class="code">BMIT2203 (L)</span><span class="location">DK ABA</span><span class="instructor">Aw Kien Sin</span><span class="time">12:00 PM - 2:00 PM</span>
+        </td>
+        <td></td>
+        <td colspan="2" class="class-box t1-course">
+            <span class="code">BMCS2203 (T)</span><span class="location">TA240</span><span class="instructor">Yan Yen Wei</span><span class="time">2:30 PM - 3:30 PM</span>
+        </td>
+        <td></td>
+        <td colspan="4" class="class-box t1-course">
+            <span class="code">BMSE2163 (L)</span><span class="location">DK 4</span><span class="instructor">Bavani</span><span class="time">4:00 PM - 6:00 PM</span>
+        </td>
+        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+    </tr>
+
+    <tr>
+        <td class="day-col">Sat</td>
+        <td></td><td></td><td></td><td></td><td></td><td></td>
+        <td colspan="2" class="class-box same-course">
+            <span class="code">BMCS2053 (P)</span><span class="location">D203E</span><span class="instructor">Chong Jin Bin</span><span class="time">11:00 AM - 12:00 PM</span>
+        </td>
+        <td colspan="4" class="class-box t2-course">
+            <span class="code">BMIT3084 (P)</span><span class="location">B100K</span><span class="instructor">Yogeswaran</span><span class="time">12:00 PM - 2:00 PM</span>
+        </td>
+        <td colspan="2" class="class-box t2-course">
+            <span class="code">BMIT3084 (T)</span><span class="location">TA211</span><span class="instructor">Yogeswaran</span><span class="time">2:00 PM - 3:00 PM</span>
+        </td>
+        <td></td><td></td><td></td><td></td>
+        <td colspan="2" class="class-box same-course">
+            <span class="code">BMCS2053 (T)</span><span class="location">TA241</span><span class="instructor">Chong Jin Bin</span><span class="time">5:00 PM - 6:00 PM</span>
+        </td>
+        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+    </tr>
+</table>
+
+</body>
+</html>
