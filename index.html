@@ -1,1 +1,53 @@
-<html><head><title>Claw Control Center</title><style>body {background-color: #2f2f2f; color: #ffffff;} .claw-control-center {font-family: monospace; padding: 20px; border-radius: 10px; background-color: #333333;}.claw-control-center .button {cursor: pointer; border: none; padding: 10px 20px; font-size: 16px; background-color: #444444; color: #ffffff;}.claw-control-center .button:hover {background-color: #555555;}</style></head><body><div class="claw-control-center"><h1>Claw Control Center</h1><p>Welcome to the Clawd Control Center. Here you can manage all of your AI-powered tasks and projects.</p><input type="button" value="Create New Project" class="button"></div></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Chat | yong1412</title>
+    <style>
+        body { background: #0d1117; color: #c9d1d9; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; margin: 0; }
+        #chat-box { flex: 1; overflow-y: auto; padding: 20px; border-bottom: 1px solid #30363d; }
+        .msg { margin-bottom: 15px; padding: 10px; border-radius: 5px; max-width: 80%; }
+        .user { background: #238636; align-self: flex-end; margin-left: auto; }
+        .ai { background: #161b22; border: 1px solid #30363d; }
+        #input-area { padding: 20px; display: flex; gap: 10px; }
+        input { flex: 1; padding: 10px; background: #0d1117; border: 1px solid #30363d; color: white; border-radius: 5px; }
+        button { padding: 10px 20px; background: #238636; border: none; color: white; cursor: pointer; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div id="chat-box"></div>
+    <div id="input-area">
+        <input type="text" id="user-input" placeholder="Ask your Pi anything...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        async function sendMessage() {
+            const input = document.getElementById('user-input');
+            const chatBox = document.getElementById('chat-box');
+            if (!input.value) return;
+
+            // Add User Message to UI
+            chatBox.innerHTML += `<div class="msg user">${input.value}</div>`;
+            const userMsg = input.value;
+            input.value = '';
+
+            try {
+                const response = await fetch('https://ai.yong1412.my/api/generate', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        model: 'phi3',
+                        prompt: userMsg,
+                        stream: false
+                    })
+                });
+                const data = await response.json();
+                chatBox.innerHTML += `<div class="msg ai">${data.response}</div>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            } catch (err) {
+                chatBox.innerHTML += `<div class="msg ai" style="color: red;">Error: Could not reach the Pi. Check tunnel status.</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
