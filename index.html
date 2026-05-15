@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Claw Control | yong1412</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kai Quan AI Chat | v1.0.0</title>
     <style>
         :root {
             --bg-color: #0d1117;
@@ -16,15 +16,32 @@
             --accent: #58a6ff;
         }
 
+        * { box-sizing: border-box; }
+
         body { 
             background: var(--bg-color); 
             color: var(--text-main); 
-            font-family: -apple-system, system-ui, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0; 
             display: flex; 
             justify-content: center; 
-            height: 100vh; 
-            margin: 0; 
+            height: 100vh;
             overflow: hidden;
+        }
+
+        /* --- VERSION TAG --- */
+        .version-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #21262d;
+            border: 1px solid var(--border-color);
+            color: var(--text-dim);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-family: monospace;
+            z-index: 1100;
         }
 
         /* --- CONNECTION OVERLAY --- */
@@ -36,141 +53,210 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 100;
-            transition: opacity 0.5s ease;
+            z-index: 1000;
+            transition: opacity 0.4s ease;
+            text-align: center;
         }
 
         .status-dot {
-            width: 12px; height: 12px;
+            width: 14px; height: 14px;
             border-radius: 50%;
-            background: #8b949e;
+            background: #484f58;
             margin-bottom: 20px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
-        .status-dot.online { background: #39d353; box-shadow: 0 0 15px #238636; }
+        .status-dot.online { background: #39d353; box-shadow: 0 0 20px #238636; }
         .status-dot.error { background: #f85149; }
 
         #start-btn {
-            padding: 12px 30px;
+            margin-top: 25px;
+            padding: 14px 40px;
             background: var(--user-bubble);
             color: white;
             border: none;
-            border-radius: 6px;
-            font-weight: bold;
+            border-radius: 8px;
+            font-weight: 600;
             cursor: pointer;
-            display: none; /* Hidden until connected */
-            transition: transform 0.2s;
+            display: none;
         }
-        #start-btn:hover { transform: scale(1.05); }
 
-        /* --- CHAT INTERFACE --- */
+        /* --- MAIN DASHBOARD --- */
         #main-container {
-            width: 100%; max-width: 1000px;
-            display: flex; flex-direction: column;
+            width: 100%;
+            max-width: 900px;
+            height: 100%;
+            display: none; 
+            flex-direction: column;
             background: var(--container-bg);
             border-left: 1px solid var(--border-color);
             border-right: 1px solid var(--border-color);
-            visibility: hidden; /* Hidden until Start is clicked */
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            position: relative;
         }
 
-        #chat-box { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
-        .message-row { display: flex; flex-direction: column; max-width: 80%; }
+        #chat-box { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 20px; 
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            scroll-behavior: smooth;
+        }
+
+        .message-row { display: flex; flex-direction: column; max-width: 85%; }
         .message-row.user-row { align-self: flex-end; align-items: flex-end; }
         .message-row.ai-row { align-self: flex-start; align-items: flex-start; }
-        .label { font-size: 0.75rem; font-weight: 600; margin-bottom: 4px; color: var(--text-dim); text-transform: uppercase; }
-        .bubble { padding: 12px 16px; border-radius: 8px; font-size: 0.95rem; line-height: 1.5; }
-        .user-row .bubble { background: var(--user-bubble); color: white; }
-        .ai-row .bubble { background: var(--ai-bubble); border: 1px solid var(--border-color); }
-        .stats { font-size: 0.7rem; color: var(--text-dim); margin-top: 6px; }
 
-        #input-area { padding: 20px; background: var(--bg-color); border-top: 1px solid var(--border-color); display: flex; gap: 12px; }
-        input { flex: 1; padding: 14px; background: var(--container-bg); border: 1px solid var(--border-color); color: white; border-radius: 6px; outline: none; }
-        button#send-btn { padding: 0 24px; background: var(--user-bubble); border: none; color: white; font-weight: bold; border-radius: 6px; cursor: pointer; }
+        .label { font-size: 0.7rem; font-weight: 700; margin-bottom: 4px; color: var(--text-dim); text-transform: uppercase; }
+        
+        .bubble { 
+            padding: 12px 16px; 
+            border-radius: 12px; 
+            font-size: 0.95rem; 
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+        .user-row .bubble { background: var(--user-bubble); color: white; border-bottom-right-radius: 2px; }
+        .ai-row .bubble { background: var(--ai-bubble); border: 1px solid var(--border-color); border-bottom-left-radius: 2px; }
+
+        .stats { font-size: 0.65rem; color: var(--text-dim); margin-top: 5px; }
+        .timer-live { color: var(--accent); font-family: monospace; font-weight: bold; }
+
+        #input-area { 
+            padding: 20px; 
+            background: var(--bg-color); 
+            border-top: 1px solid var(--border-color); 
+            display: flex; 
+            gap: 10px;
+        }
+
+        input { 
+            flex: 1; 
+            padding: 14px; 
+            background: var(--container-bg); 
+            border: 1px solid var(--border-color); 
+            color: white; 
+            border-radius: 8px; 
+            font-size: 16px;
+            outline: none;
+        }
+
+        button#send-btn { 
+            padding: 0 25px; 
+            background: var(--user-bubble); 
+            border: none; 
+            color: white; 
+            font-weight: 600; 
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 900px) {
+            #main-container { border: none; max-width: 100%; }
+        }
     </style>
 </head>
 <body>
 
+    <div class="version-badge">v1.0.0</div>
+
     <div id="connection-overlay">
         <div id="dot" class="status-dot"></div>
-        <h2 id="status-text" style="margin-bottom: 20px; font-weight: 400;">Pinging Raspberry Pi 4...</h2>
-        <button id="start-btn" onclick="enterChat()">START CHAT</button>
+        <div id="status-text" style="font-size: 1.2rem; font-weight: 300;">INITIALIZING NODE: Raspberry Pi 4...</div>
+        <div style="font-size: 0.8rem; color: var(--text-dim); margin-top: 10px;">AI Chat System</div>
+        <button id="start-btn" onclick="enterChat()">START SESSION</button>
     </div>
 
     <div id="main-container">
         <div id="chat-box"></div>
         <div id="input-area">
-            <input type="text" id="user-input" placeholder="Enter prompt..." onkeypress="if(event.key==='Enter') sendMessage()">
+            <input type="text" id="user-input" placeholder="Enter command or query..." autocomplete="off">
             <button id="send-btn" onclick="sendMessage()">Send</button>
         </div>
     </div>
 
     <script>
-        // --- 1. INITIAL CONNECTION CHECK ---
-        window.onload = async function() {
-            const dot = document.getElementById('dot');
-            const statusText = document.getElementById('status-text');
-            const startBtn = document.getElementById('start-btn');
+        const input = document.getElementById('user-input');
+        const chatBox = document.getElementById('chat-box');
+        const overlay = document.getElementById('connection-overlay');
+        const startBtn = document.getElementById('start-btn');
+        const dot = document.getElementById('dot');
+        const statusMsg = document.getElementById('status-text');
 
+        input.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMessage(); });
+
+        window.onload = async function() {
             try {
-                // Check if Ollama is responsive
-                const response = await fetch('https://ai.yong1412.my/api/tags');
-                if (response.ok) {
-                    dot.classList.add('online');
-                    statusText.innerText = "Raspberry Pi 4 Connected";
+                const res = await fetch('https://ai.yong1412.my/api/tags');
+                if (res.ok) {
+                    dot.className = 'status-dot online';
+                    statusMsg.innerText = "Connection Verified: Pi 4 Online";
                     startBtn.style.display = 'block';
-                } else {
-                    throw new Error();
                 }
-            } catch (err) {
-                dot.classList.add('error');
-                statusText.innerText = "Connection Failed. Check Tunnel.";
+            } catch (e) {
+                dot.className = 'status-dot error';
+                statusMsg.innerHTML = "Node Offline<br><span style='font-size:0.8rem; color:var(--text-dim)'>Verify Cloudflare Tunnel Status</span>";
+                startBtn.style.display = 'block';
+                startBtn.innerText = "FORCE START SESSION";
+                startBtn.style.background = "#30363d";
             }
         };
 
         function enterChat() {
-            document.getElementById('connection-overlay').style.opacity = '0';
+            overlay.style.opacity = '0';
             setTimeout(() => {
-                document.getElementById('connection-overlay').style.display = 'none';
-                document.getElementById('main-container').style.visibility = 'visible';
-            }, 500);
+                overlay.style.display = 'none';
+                document.getElementById('main-container').style.display = 'flex';
+            }, 400);
         }
 
-        // --- 2. CHAT LOGIC ---
         async function sendMessage() {
-            const input = document.getElementById('user-input');
-            const chatBox = document.getElementById('chat-box');
-            if (!input.value.trim()) return;
-
-            const text = input.value;
+            const val = input.value.trim();
+            if (!val) return;
             input.value = '';
 
             chatBox.innerHTML += `
                 <div class="message-row user-row">
-                    <span class="label">Kai Quan</span>
-                    <div class="bubble">${text}</div>
+                    <span class="label">User</span>
+                    <div class="bubble">${val}</div>
                 </div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
 
             const aiRow = document.createElement('div');
             aiRow.className = 'message-row ai-row';
             aiRow.innerHTML = `
                 <span class="label">Phi3 (Pi 4)</span>
-                <div class="bubble">...</div>`;
+                <div class="bubble">Processing...</div>
+                <span class="stats">Time elapsed: <span class="timer-live">0.0</span>s</span>`;
             chatBox.appendChild(aiRow);
             chatBox.scrollTop = chatBox.scrollHeight;
 
+            const timerDisplay = aiRow.querySelector('.timer-live');
+            const startTime = performance.now();
+            
+            const timerInterval = setInterval(() => {
+                const currentTime = performance.now();
+                const elapsed = ((currentTime - startTime) / 1000).toFixed(1);
+                timerDisplay.innerText = elapsed;
+            }, 100);
+
             try {
-                const startTime = performance.now();
                 const response = await fetch('https://ai.yong1412.my/api/generate', {
                     method: 'POST',
-                    body: JSON.stringify({ model: 'phi3', prompt: text, stream: false })
+                    body: JSON.stringify({ model: 'phi3', prompt: val, stream: false })
                 });
+                
                 const data = await response.json();
-                const duration = ((performance.now() - startTime) / 1000).toFixed(2);
+                clearInterval(timerInterval);
+                const finalTime = ((performance.now() - startTime) / 1000).toFixed(2);
                 
                 aiRow.querySelector('.bubble').innerText = data.response;
-                aiRow.innerHTML += `<span class="stats">${duration}s Latency</span>`;
+                aiRow.querySelector('.stats').innerHTML = `${new Date().toLocaleTimeString()} | Total: ${finalTime}s`;
             } catch (err) {
-                aiRow.querySelector('.bubble').innerText = "Error reaching Pi.";
+                clearInterval(timerInterval);
+                aiRow.querySelector('.bubble').innerText = "ERROR: Failed to reach node.";
+                aiRow.querySelector('.bubble').style.color = "#f85149";
+                aiRow.querySelector('.stats').innerText = "Connection interrupted.";
             }
             chatBox.scrollTop = chatBox.scrollHeight;
         }
