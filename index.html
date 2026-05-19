@@ -300,9 +300,10 @@
 
     <div id="main-container">
         <div id="telemetry-bar">
-            <div class="stat-item">ID: <span id="display-user">--</span></div>
+            <div class="stat-item">USER: <span id="display-user">--</span></div>
             <div class="stat-item">TEMP: <span id="pi-temp">--°C</span></div>
-            <div class="stat-item">RAM: <span id="pi-ram">-- MB</span></div>
+            <div class="stat-item">CPU LOAD (Max 5): <span id="pi-cpu">--</span></div>
+            <div class="stat-item">RAM (MB): <span id="pi-ram">-.---</span></div>
             <button id="logout-btn" onclick="logout()">LOGOUT</button>
         </div>
 
@@ -335,8 +336,6 @@
                 initSystem();
             }
         };
-
-        // (Keep the rest of your chat script, just replace the verifyLogin function!)
 
     function toggleAuthMode() {
         const loginForm = document.getElementById('login-form');
@@ -462,6 +461,11 @@
                 if (!res.ok) return;
                 const data = await res.json();
                 document.getElementById('pi-temp').innerText = `${data.temp}°C`;
+                
+                // === ADDED CPU UPDATE HERE ===
+                document.getElementById('pi-cpu').innerText = `${data.cpu_load}`;
+                // ==============================
+                
                 document.getElementById('pi-ram').innerText = `${data.used_ram}`;
             } catch (e) { }
         }
